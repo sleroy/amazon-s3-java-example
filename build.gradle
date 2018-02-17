@@ -1,0 +1,122 @@
+plugins {
+    id 'jacoco'
+    id 'com.github.kt3k.coveralls' version '2.8.2'
+    id "com.jfrog.bintray" version "1.8.0"
+}
+
+
+
+// Apply the java plugin to add support for Java
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'eclipse'
+apply plugin: 'jacoco'
+apply plugin: 'maven-publish'
+
+
+coveralls {
+    sourceDirs = files(subprojects.sourceSets.main.allSource.srcDirs).files.absolutePath
+}
+
+
+jacoco {
+        toolVersion = '0.7.9'
+}
+
+jacocoTestReport {
+        reports {
+            html.enabled = true
+            xml.enabled = true
+            csv.enabled = false
+        }
+}
+
+
+// Create the pom configuration:
+def pomConfig = {
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
+    }
+    developers {
+        developer {
+            id "sleroy"
+            name "Sylvain Leroy"
+            email "contact@sylvainleroy.com"
+        }
+    }
+    
+    scm {
+       url "https://github.com/amazon-s3-java-example"
+    }
+}
+
+
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    // Use 'jcenter' for resolving your dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    jcenter()
+}
+
+configurations {
+  codeGeneration
+}
+
+compileJava.classpath += configurations.codeGeneration
+compileTestJava.classpath += configurations.codeGeneration
+
+// In this section you declare the dependencies for your production and test code
+dependencies {
+    compile "org.slf4j:slf4j-api:$SLF4J_VERSION"
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: COMMONS_LANG3
+	compile group: 'com.google.guava', name: 'guava', version: GUAVA
+	compile "com.amazonaws:aws-java-sdk-s3:$AMAZON_SDK"
+    compile group: 'com.beust', name: 'jcommander', version: JCOMMANDER
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    
+    
+    codeGeneration "net.karneim:pojobuilder:$POJOBUILDER"
+    compileOnly "net.karneim:pojobuilder:$POJOBUILDER"
+	
+	
+    
+	testCompile group: 'org.mockito', name: 'mockito-all', version: MOCKITO	
+	testCompile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: JACKSON
+	testCompile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: JACKSON
+	testCompile group: 'org.hibernate.validator', name: 'hibernate-validator', version: VALIDATOR
+	
+    testCompile "junit:junit:$JUNIT_VERSION"
+}
+
+task jacocoRootReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
+    dependsOn = subprojects.test
+    sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs)
+    classDirectories =  files(subprojects.sourceSets.main.output)
+    executionData = files(subprojects.jacocoTestReport.executionData)
+    reports {
+        html.enabled = true
+        xml.enabled = true
+        csv.enabled = false
+    }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+javadoc.failOnError = false
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
