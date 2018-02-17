@@ -17,6 +17,8 @@
 
 This is a simple example how to use S3 with Java. Based on [Amazon S3 example](https://javatutorial.net/java-s3-example).
 
+An article is providing more informations : [SylvainLeroy blog](https://sylvainleroy.com/2018/02/17/using-s3-libraries-minio-mock-server).
+
 # Test with MINIO
 
 According the documentation : 
